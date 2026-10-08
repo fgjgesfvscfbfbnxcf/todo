@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -16,9 +16,14 @@ import { TodoItem } from './src/components/TodoItem';
 import { useTodos } from './src/hooks/useTodos';
 import { colors, radius, spacing } from './src/theme';
 import type { Todo } from './src/types';
+import { installWebScrollbarStyle } from './src/webScrollbar';
 
 export default function App() {
   const { todos, addTodo, toggleTodo, deleteTodo, clearCompleted } = useTodos();
+
+  useEffect(() => {
+    installWebScrollbarStyle();
+  }, []);
 
   const doneCount = useMemo(() => todos.filter((todo) => todo.done).length, [todos]);
   const remaining = todos.length - doneCount;
@@ -30,11 +35,25 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right', 'bottom']}>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
+          {/* Hlavička a pole pro zadávání zůstávají na místě, posouvá se jen seznam. */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Moje úkoly</Text>
+            <Text style={styles.subtitle}>
+              {todos.length === 0
+                ? 'Zatím je tu prázdno – přidej první úkol.'
+                : remaining === 0
+                  ? 'Všechno hotovo. Jsi skvělý!'
+                  : `Zbývá ${remaining} ${remaining === 1 ? 'úkol' : 'úkolů'}.`}
+            </Text>
+
+            <TodoInput onSubmit={addTodo} />
+          </View>
+
           <FlatList
             style={styles.flex}
             contentContainerStyle={styles.listContent}
@@ -42,20 +61,6 @@ export default function App() {
             keyExtractor={(todo) => todo.id}
             renderItem={renderItem}
             keyboardShouldPersistTaps="handled"
-            ListHeaderComponent={
-              <View>
-                <Text style={styles.title}>Moje úkoly</Text>
-                <Text style={styles.subtitle}>
-                  {todos.length === 0
-                    ? 'Zatím je tu prázdno – přidej první úkol.'
-                    : remaining === 0
-                      ? 'Všechno hotovo. Jsi skvělý!'
-                      : `Zbývá ${remaining} ${remaining === 1 ? 'úkol' : 'úkolů'}.`}
-                </Text>
-
-                <TodoInput onSubmit={addTodo} />
-              </View>
-            }
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyEmoji}>🗒️</Text>
@@ -71,11 +76,12 @@ export default function App() {
                   accessibilityRole="button"
                   accessibilityLabel="Smazat všechny dokončené úkoly"
                   onPress={clearCompleted}
-                  style={({ pressed }) => [styles.clearButton, pressed && styles.clearButtonPressed]}
+                  style={({ pressed }) => [
+                    styles.clearButton,
+                    pressed && styles.clearButtonPressed,
+                  ]}
                 >
-                  <Text style={styles.clearButtonLabel}>
-                    Smazat dokončené ({doneCount})
-                  </Text>
+                  <Text style={styles.clearButtonLabel}>Smazat dokončené ({doneCount})</Text>
                 </Pressable>
               ) : null
             }
@@ -94,10 +100,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xl,
+  },
   listContent: {
     flexGrow: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
   },
   title: {
@@ -110,7 +120,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 15,
     marginTop: spacing.xs,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   empty: {
     flex: 1,
