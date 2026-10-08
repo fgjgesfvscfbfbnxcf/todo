@@ -37,6 +37,14 @@ npx expo start --web
 
 Aplikace se otevře na `http://localhost:8081`.
 
+#### Testovací telefon
+
+Adresa `http://localhost:8081/phone.html` otevře aplikaci ve virtuálním telefonu
+(390 × 844) s falešným stavovým řádkem. Když uložíš změnu v kódu, Metro ji
+automaticky promítne do rámečku – není potřeba nic obnovovat. Na stránce jsou
+tlačítka **Načíst znovu**, **Otevřít samostatně** a **Vymazat data** (poslední
+vrátí aplikaci do stavu jako čerstvá instalace).
+
 ## Struktura projektu
 
 ```
