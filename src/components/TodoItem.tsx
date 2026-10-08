@@ -9,48 +9,51 @@ type TodoItemProps = {
   onDelete: (id: string) => void;
 };
 
-/** Jeden řádek seznamu: zaškrtávací políčko, text a tlačítko pro smazání. */
+/**
+ * Jeden řádek seznamu: zaškrtávací políčko, text a tlačítko pro smazání.
+ *
+ * Přepnout hotovo / nedokončeno jde kliknutím kamkoliv na řádek, nejen na text
+ * nebo na políčko – celý řádek je jedno velké tlačítko. Tlačítko pro smazání
+ * je uvnitř, takže po něm kliknout smaže úkol a nic nepřepne.
+ */
 export function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
   return (
-    <View style={[styles.row, todo.done && styles.rowDone]}>
-      <Pressable
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: todo.done }}
-        aria-checked={todo.done}
-        accessibilityLabel={`Označit úkol "${todo.title}" jako ${
-          todo.done ? 'nedokončený' : 'dokončený'
-        }`}
-        hitSlop={10}
-        onPress={() => onToggle(todo.id)}
-        style={({ pressed }) => [
-          styles.checkbox,
-          todo.done && styles.checkboxChecked,
-          pressed && styles.checkboxPressed,
-        ]}
-      >
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: todo.done }}
+      aria-checked={todo.done}
+      accessibilityLabel={`Označit úkol "${todo.title}" jako ${
+        todo.done ? 'nedokončený' : 'dokončený'
+      }`}
+      onPress={() => onToggle(todo.id)}
+      style={({ pressed }) => [
+        styles.row,
+        todo.done && styles.rowDone,
+        pressed && styles.rowPressed,
+      ]}
+    >
+      <View style={[styles.checkbox, todo.done && styles.checkboxChecked]}>
         {todo.done ? <Text style={styles.checkboxMark}>✓</Text> : null}
-      </Pressable>
+      </View>
 
-      <Pressable style={styles.titleArea} onPress={() => onToggle(todo.id)}>
-        <Text
-          style={[styles.title, todo.done && styles.titleDone]}
-          numberOfLines={3}
-          ellipsizeMode="tail"
-        >
-          {todo.title}
-        </Text>
-      </Pressable>
+      <Text
+        style={[styles.title, todo.done && styles.titleDone]}
+        numberOfLines={3}
+        ellipsizeMode="tail"
+      >
+        {todo.title}
+      </Text>
 
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Smazat úkol "${todo.title}"`}
-        hitSlop={10}
+        hitSlop={12}
         onPress={() => onDelete(todo.id)}
         style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}
       >
         <Text style={styles.deleteIcon}>✕</Text>
       </Pressable>
-    </View>
+    </Pressable>
   );
 }
 
@@ -70,6 +73,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.cardDone,
     borderColor: colors.border,
   },
+  rowPressed: {
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
+  },
   checkbox: {
     width: 26,
     height: 26,
@@ -84,23 +91,18 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
     borderColor: colors.success,
   },
-  checkboxPressed: {
-    opacity: 0.6,
-  },
   checkboxMark: {
     color: colors.background,
     fontSize: 16,
     fontWeight: '900',
     lineHeight: 20,
   },
-  titleArea: {
-    flex: 1,
-    paddingRight: spacing.sm,
-  },
   title: {
+    flex: 1,
     color: colors.text,
     fontSize: 16,
     lineHeight: 22,
+    paddingRight: spacing.sm,
   },
   titleDone: {
     color: colors.textMuted,
