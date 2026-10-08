@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moje Úkoly – test ve virtuálním telefonu</title>
+    <style>
+      :root {
+        --desk-1: #1b1d2a;
+        --desk-2: #0b0c14;
+        --frame: #0a0a0c;
+        --accent: #7c5cff;
+        --text: #f4f5ff;
+        --muted: #9aa0c0;
+        /* rozměry telefonu se zmenší, když není dost místa */
+        --screen-h: min(844px, calc(100vh - 80px));
+        --screen-w: calc(var(--screen-h) * 0.4621);
+        /* výška stavového řádku – aplikace začíná až pod ním */
+        --sb: min(50px, 6%);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: min(56px, 4vw);
+        padding: 32px 20px;
+        overflow: hidden;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1100px 620px at 20% 0%, #2a2c46 0%, transparent 60%),
+          linear-gradient(160deg, var(--desk-1), var(--desk-2));
+      }
+
+      /* ---------- mobilní rámeček ---------- */
+      .phone {
+        position: relative;
+        width: calc(var(--screen-w) + 20px);
+        height: calc(var(--screen-h) + 20px);
+        padding: 10px;
+        border-radius: min(50px, 4.4vw);
+        background: linear-gradient(160deg, #3a3c4a, var(--frame) 35%, #000);
+        box-shadow:
+          0 0 0 2px #24262f,
+          0 40px 80px rgba(0, 0, 0, 0.65),
+          0 8px 24px rgba(0, 0, 0, 0.5);
+        flex: none;
+      }
+
+      .screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        padding-top: var(--sb);
+        border-radius: min(40px, 3.5vw);
+        overflow: hidden;
+        background: #0e1020;
+      }
+
+      .screen iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+
+      /* ostrov (Dynamic Island) */
+      .island {
+        position: absolute;
+        top: calc(var(--sb) * 0.28);
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30%;
+        height: min(30px, 3.8%);
+        border-radius: 999px;
+        background: #000;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      /* falešný stavový řádek */
+      .status-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--sb);
+        padding: min(14px, 1.7vh) 7% 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: min(13px, 1.7vh);
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        z-index: 9;
+        pointer-events: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      /* gesture bar */
+      .home-bar {
+        position: absolute;
+        bottom: 1%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 35%;
+        height: min(5px, 0.6%);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.35);
+        z-index: 9;
+        pointer-events: none;
+      }
+
+      /* ---------- panel s nápovědou ---------- */
+      .side {
+        max-width: 320px;
+      }
+
+      .side h1 {
+        margin: 0 0 6px;
+        font-size: 26px;
+        letter-spacing: 0.3px;
+      }
+
+      .side p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 18px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(124, 92, 255, 0.55);
+        background: rgba(124, 92, 255, 0.14);
+        color: #c9bcff;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 8px #34d399;
+      }
+
+      button {
+        font: inherit;
+        cursor: pointer;
+        border: 0;
+        border-radius: 12px;
+        padding: 11px 18px;
+        color: #fff;
+        font-weight: 600;
+        background: var(--accent);
+      }
+
+      button:hover {
+        background: #6845f0;
+      }
+
+      button.ghost {
+        margin-left: 8px;
+        background: transparent;
+        border: 1px solid #3a3d55;
+        color: var(--muted);
+      }
+
+      button.ghost:hover {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+      }
+
+      code {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12.5px;
+        color: #c9bcff;
+        background: rgba(124, 92, 255, 0.12);
+        padding: 1px 6px;
+        border-radius: 5px;
+      }
+
+      ul {
+        margin: 18px 0 0;
+        padding-left: 18px;
+        color: var(--muted);
+        font-size: 13.5px;
+        line-height: 1.9;
+      }
+
+      /* na úzké obrazovce schováme panel a necháme jen telefon */
+      @media (max-width: 900px) {
+        .side {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="phone">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="status-bar"><span id="clock">9:41</span><span>▮▮▮ ⚡ 100%</span></div>
+        <iframe id="app" src="/" title="Aplikace Moje Úkoly"></iframe>
+        <div class="home-bar"></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <h1>Testovací telefon</h1>
+      <div class="badge"><span class="dot"></span> živé aktualizace zapnuté</div>
+      <p>
+        Tohle je aplikace <b>Moje Úkoly</b> ve virtuálním telefonu (390 × 844). Když uložíš
+        změnu v kódu, Metro ji automaticky promítne tady — není potřeba nic obnovovat.
+      </p>
+      <div>
+        <button id="reload">Načíst znovu</button>
+        <button class="ghost" id="open">Otevřít samostatně</button>
+        <button class="ghost" id="wipe">Vymazat data</button>
+      </div>
+      <ul>
+        <li>width: <code>390px</code>, výška: <code>844px</code></li>
+        <li>aplikace běží opravdu, včetně ukládání do AsyncStorage</li>
+        <li>„Vymazat data“ vrátí aplikaci do stavu jako čerstvá instalace</li>
+        <li>pro jemnější testování můžeš rámeček zmenšit v prohlížeči (<kbd>Ctrl</kbd> + <kbd>-</kbd>)</li>
+      </ul>
+    </div>
+
+    <script>
+      var frame = document.getElementById('app');
+      document.getElementById('reload').addEventListener('click', function () {
+        // reload() nastaví i cache, aby se načetl opravdu nový bundl
+        frame.contentWindow.location.reload(true);
+      });
+      document.getElementById('open').addEventListener('click', function () {
+        window.open('/', '_blank');
+      });
+      document.getElementById('wipe').addEventListener('click', function () {
+        // stejná localStorage, kterou používá AsyncStorage na webu
+        try {
+          window.localStorage.clear();
+        } catch (error) {
+          /* ignoruj – tlačítko není zásadní */
+        }
+        frame.contentWindow.location.reload(true);
+      });
+
+      function updateClock() {
+        var now = new Date();
+        var h = now.getHours();
+        var m = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('clock').textContent = h + ':' + m;
+      }
+      updateClock();
+      setInterval(updateClock, 15000);
+    </script>
+  </body>
+</html>
