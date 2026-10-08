@@ -1,11 +1,24 @@
 import { Platform } from 'react-native';
 
 /**
- * Výchozí scrollbar v prohlížeči je tlustý a bílý a v temném motivu působí
- * cizorodě. Tenhle styl se aplikuje jen na webu (Expo Go / Android / iOS ho
- * nepotřebují – tam scrollbar nekreslí).
+ * Vzhled aplikace, který umí jen prohlížeč.
+ *
+ * 1) Výchozí scrollbar je tlustý, bílý a v temném motivu působí cizorodě.
+ * 2) Přechod barvy pozadí – na webu nejde spolehlivě přehrát vlastní animací
+ *    (viz `usePressAnimation`), takže barvu zde plynule přejíždí samotný prohlížeč.
+ *    Bez toho se barva při stisku přepne okamžitě a působí trhaně.
+ *
+ * Android a iOS scrollbar nekreslí a barvu řídí vlastní animace, takže je tento
+ * soubor na telefonech úplně neaktivní.
  */
 const CSS = `
+/* plynulé přechod barev na webu */
+* {
+  transition:
+    background-color 260ms cubic-bezier(0.33, 1, 0.68, 1),
+    border-color 260ms cubic-bezier(0.33, 1, 0.68, 1);
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(124, 92, 255, 0.55) transparent;

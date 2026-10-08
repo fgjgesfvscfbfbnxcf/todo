@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { usePressAnimation } from '../hooks/usePressAnimation';
 import { colors, radius, spacing } from '../theme';
 
 type TodoInputProps = {
@@ -11,8 +12,13 @@ type TodoInputProps = {
 /** Pole pro napsání nového úkolu + tlačítko Přidat. */
 export function TodoInput({ onSubmit }: TodoInputProps) {
   const [value, setValue] = useState('');
-
   const isEmpty = value.trim().length === 0;
+
+  // Když je pole prázdné, tlačítko je neaktivní a nemá co ztmavnout.
+  const addButton = usePressAnimation(
+    isEmpty ? colors.primarySoft : colors.primary,
+    colors.primaryPressed
+  );
 
   function handleAdd() {
     // Kdyby byl vstup prázdný, nic se nestane.
@@ -35,20 +41,22 @@ export function TodoInput({ onSubmit }: TodoInputProps) {
         accessibilityLabel="Nový úkol"
       />
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Přidat úkol"
-        accessibilityState={{ disabled: isEmpty }}
-        disabled={isEmpty}
-        onPress={handleAdd}
-        style={({ pressed }) => [
-          styles.addButton,
-          isEmpty && styles.addButtonDisabled,
-          pressed && !isEmpty && styles.addButtonPressed,
-        ]}
+      <Animated.View
+        style={[styles.addButton, { backgroundColor: addButton.backgroundColor }]}
       >
-        <Text style={styles.addButtonLabel}>Přidat</Text>
-      </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Přidat úkol"
+          accessibilityState={{ disabled: isEmpty }}
+          disabled={isEmpty}
+          onPress={handleAdd}
+          onPressIn={addButton.pressIn}
+          onPressOut={addButton.pressOut}
+          style={styles.addButtonTap}
+        >
+          <Text style={styles.addButtonLabel}>Přidat</Text>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }
@@ -75,17 +83,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   addButton: {
-    backgroundColor: colors.primary,
     borderRadius: radius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
     marginLeft: spacing.sm,
   },
-  addButtonPressed: {
-    backgroundColor: colors.primaryPressed,
-  },
-  addButtonDisabled: {
-    backgroundColor: colors.primarySoft,
+  addButtonTap: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   addButtonLabel: {
     color: colors.white,

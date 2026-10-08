@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { usePressAnimation } from '../hooks/usePressAnimation';
 import { colors, radius, spacing } from '../theme';
 import type { Todo } from '../types';
 
@@ -15,67 +16,73 @@ type TodoItemProps = {
  * Přepnout hotovo / nedokončeno jde kliknutím kamkoliv na řádek, nejen na text
  * nebo na políčko – celý řádek je jedno velké tlačítko. Tlačítko pro smazání
  * je uvnitř, takže po něm kliknout smaže úkol a nic nepřepne.
+ *
+ * `Animated.View` nese jen barvu pozadí (která se plynule mění při stisku),
+ * samotné `Pressable` uvnitř zajišťuje dotyky.
  */
 export function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
+  const baseColor = todo.done ? colors.cardDone : colors.card;
+
+  const row = usePressAnimation(baseColor, colors.primarySoft);
+  const del = usePressAnimation('rgba(0, 0, 0, 0)', colors.dangerSoft);
+
   return (
-    <Pressable
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: todo.done }}
-      aria-checked={todo.done}
-      accessibilityLabel={`Označit úkol "${todo.title}" jako ${
-        todo.done ? 'nedokončený' : 'dokončený'
-      }`}
-      onPress={() => onToggle(todo.id)}
-      style={({ pressed }) => [
-        styles.row,
-        todo.done && styles.rowDone,
-        pressed && styles.rowPressed,
-      ]}
-    >
-      <View style={[styles.checkbox, todo.done && styles.checkboxChecked]}>
-        {todo.done ? <Text style={styles.checkboxMark}>✓</Text> : null}
-      </View>
-
-      <Text
-        style={[styles.title, todo.done && styles.titleDone]}
-        numberOfLines={3}
-        ellipsizeMode="tail"
-      >
-        {todo.title}
-      </Text>
-
+    <Animated.View style={[styles.row, { backgroundColor: row.backgroundColor }]}>
       <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Smazat úkol "${todo.title}"`}
-        hitSlop={12}
-        onPress={() => onDelete(todo.id)}
-        style={({ pressed }) => [styles.deleteButton, pressed && styles.deleteButtonPressed]}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: todo.done }}
+        aria-checked={todo.done}
+        accessibilityLabel={`Označit úkol "${todo.title}" jako ${
+          todo.done ? 'nedokončený' : 'dokončený'
+        }`}
+        onPress={() => onToggle(todo.id)}
+        onPressIn={row.pressIn}
+        onPressOut={row.pressOut}
+        style={styles.rowTap}
       >
-        <Text style={styles.deleteIcon}>✕</Text>
+        <View style={[styles.checkbox, todo.done && styles.checkboxChecked]}>
+          {todo.done ? <Text style={styles.checkboxMark}>✓</Text> : null}
+        </View>
+
+        <Text
+          style={[styles.title, todo.done && styles.titleDone]}
+          numberOfLines={3}
+          ellipsizeMode="tail"
+        >
+          {todo.title}
+        </Text>
+
+        <Animated.View style={[styles.deleteCircle, { backgroundColor: del.backgroundColor }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Smazat úkol "${todo.title}"`}
+            hitSlop={12}
+            onPress={() => onDelete(todo.id)}
+            onPressIn={del.pressIn}
+            onPressOut={del.pressOut}
+            style={styles.deleteTap}
+          >
+            <Text style={styles.deleteIcon}>✕</Text>
+          </Pressable>
+        </Animated.View>
       </Pressable>
-    </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+  },
+  rowTap: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  rowDone: {
-    backgroundColor: colors.cardDone,
-    borderColor: colors.border,
-  },
-  rowPressed: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primary,
   },
   checkbox: {
     width: 26,
@@ -108,15 +115,15 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textDecorationLine: 'line-through',
   },
-  deleteButton: {
+  deleteCircle: {
     width: 32,
     height: 32,
     borderRadius: radius.pill,
+  },
+  deleteTap: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  deleteButtonPressed: {
-    backgroundColor: colors.dangerSoft,
   },
   deleteIcon: {
     color: colors.danger,

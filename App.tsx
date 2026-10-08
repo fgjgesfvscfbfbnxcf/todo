@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import {
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +14,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { TodoInput } from './src/components/TodoInput';
 import { TodoItem } from './src/components/TodoItem';
+import { usePressAnimation } from './src/hooks/usePressAnimation';
 import { useTodos } from './src/hooks/useTodos';
 import { colors, radius, spacing } from './src/theme';
 import type { Todo } from './src/types';
@@ -20,6 +22,7 @@ import { installWebScrollbarStyle } from './src/webScrollbar';
 
 export default function App() {
   const { todos, addTodo, toggleTodo, deleteTodo, clearCompleted } = useTodos();
+  const clearButton = usePressAnimation('rgba(0, 0, 0, 0)', colors.dangerSoft);
 
   useEffect(() => {
     installWebScrollbarStyle();
@@ -72,17 +75,25 @@ export default function App() {
             }
             ListFooterComponent={
               doneCount > 0 ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Smazat všechny dokončené úkoly"
-                  onPress={clearCompleted}
-                  style={({ pressed }) => [
+                <Animated.View
+                  style={[
                     styles.clearButton,
-                    pressed && styles.clearButtonPressed,
+                    { backgroundColor: clearButton.backgroundColor },
                   ]}
                 >
-                  <Text style={styles.clearButtonLabel}>Smazat dokončené ({doneCount})</Text>
-                </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Smazat všechny dokončené úkoly"
+                    onPress={clearCompleted}
+                    onPressIn={clearButton.pressIn}
+                    onPressOut={clearButton.pressOut}
+                    style={styles.clearButtonTap}
+                  >
+                    <Text style={styles.clearButtonLabel}>
+                      Smazat dokončené ({doneCount})
+                    </Text>
+                  </Pressable>
+                </Animated.View>
               ) : null
             }
           />
@@ -145,15 +156,14 @@ const styles = StyleSheet.create({
   },
   clearButton: {
     alignSelf: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
     borderRadius: radius.pill,
     borderWidth: 1,
     borderColor: colors.danger,
     marginTop: spacing.sm,
   },
-  clearButtonPressed: {
-    backgroundColor: colors.dangerSoft,
+  clearButtonTap: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
   },
   clearButtonLabel: {
     color: colors.danger,
