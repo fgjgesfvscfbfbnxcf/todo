@@ -19,6 +19,9 @@ export function useTodos() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // True, jakmile uživatel sáhne na seznam – načtená data ho nesmí přepsat.
+  const hasLocalChanges = useRef(false);
+
   // 1) Při startu načteme uložené úkoly.
   useEffect(() => {
     let isActive = true;
@@ -27,7 +30,12 @@ export function useTodos() {
       if (!isActive) {
         return;
       }
-      setTodos(loaded);
+
+      // Kdyby se mezitím povedlo něco přidat, necháme to tak.
+      if (!hasLocalChanges.current) {
+        setTodos(loaded);
+      }
+
       setIsLoading(false);
     });
 
@@ -36,17 +44,14 @@ export function useTodos() {
     };
   }, []);
 
-  // 2) Kdykoli se seznam změní, uložíme ho. První běh přeskočíme,
-  //    aby se hned po startu nepřepsalo prázdné pole.
-  const isFirstSave = useRef(true);
-
+  // 2) Kdykoli se seznam změní, uložíme ho. Dokud se data načítají, neukládáme,
+  //    abychom do úložiště nezapsali prázdný seznam.
   useEffect(() => {
-    if (isFirstSave.current) {
-      isFirstSave.current = false;
+    if (isLoading) {
       return;
     }
     saveTodos(todos);
-  }, [todos]);
+  }, [todos, isLoading]);
 
   const addTodo = useCallback((rawTitle: string): boolean => {
     const title = rawTitle.trim();
@@ -63,21 +68,25 @@ export function useTodos() {
       createdAt: Date.now(),
     };
 
+    hasLocalChanges.current = true;
     setTodos((previous) => [todo, ...previous]);
     return true;
   }, []);
 
   const toggleTodo = useCallback((id: string) => {
+    hasLocalChanges.current = true;
     setTodos((previous) =>
       previous.map((todo) => (todo.id === id ? { ...todo, done: !todo.done } : todo))
     );
   }, []);
 
   const deleteTodo = useCallback((id: string) => {
+    hasLocalChanges.current = true;
     setTodos((previous) => previous.filter((todo) => todo.id !== id));
   }, []);
 
   const clearCompleted = useCallback(() => {
+    hasLocalChanges.current = true;
     setTodos((previous) => previous.filter((todo) => !todo.done));
   }, []);
 

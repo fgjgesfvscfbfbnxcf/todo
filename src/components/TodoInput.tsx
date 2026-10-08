@@ -66,6 +66,9 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    // bez toho se vstup na úzkých obrazovkách nenechá zmenšit
+    // a tlačítko „Přidat“ přeteče mimo řádek
+    minWidth: 0,
     color: colors.text,
     fontSize: 16,
     paddingVertical: spacing.md,
