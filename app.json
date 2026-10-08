@@ -1,11 +1,12 @@
 {
   "expo": {
-    "name": "todo-expo",
+    "name": "Moje Úkoly",
     "slug": "todo-expo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0E1020",
     "ios": {
       "supportsTablet": true
     },
